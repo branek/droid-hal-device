@@ -377,6 +377,8 @@ else
     echo "#include <private/android_filesystem_config.h>;" > generated_android_filesystem_config.h
 fi
 
+USE_STD_C99=1
+
 # files have changed in android >=8 so we need to supply different ones to the
 # makefile. we also need the cstring workaround thus handling both issues here
 # at once
@@ -387,13 +389,15 @@ if [ $ANDROID_VERSION_MAJOR -ge "8" ]; then
     echo "#include \"sparse_read.cpp\"" >> $ANDROID_ROOT/system/core/libsparse/sparse_read_fix.cpp
     IMG2SIMG_SOURCES="backed_block.c output_file.c sparse.c sparse_crc32.c sparse_err.c sparse_read_fix.cpp img2simg.c ../base/stringprintf.cpp"
     SIMG2IMG_SOURCES="backed_block.c output_file.c sparse.c sparse_crc32.c sparse_err.c sparse_read_fix.cpp simg2img.c ../base/stringprintf.cpp"
+
+    USE_STD_C99=0
 else
     IMG2SIMG_SOURCES="backed_block.c output_file.c sparse.c sparse_crc32.c sparse_err.c sparse_read.c img2simg.c"
     SIMG2IMG_SOURCES="backed_block.c output_file.c sparse.c sparse_crc32.c sparse_err.c sparse_read.c simg2img.c"
 fi
 
 pushd %{dhd_path}/helpers
-make ANDROID_ROOT=$ANDROID_ROOT IMG2SIMG_SOURCES="$IMG2SIMG_SOURCES" SIMG2IMG_SOURCES="$SIMG2IMG_SOURCES"
+make USE_STD_C99=$USE_STD_C99 ANDROID_ROOT=$ANDROID_ROOT IMG2SIMG_SOURCES="$IMG2SIMG_SOURCES" SIMG2IMG_SOURCES="$SIMG2IMG_SOURCES"
 popd
 
 echo Building uid scripts
@@ -416,7 +420,7 @@ mkdir tmp/units
 # skip various mounts which are not wanted (This is just in case they creep in)
 # First handle stupid spec quoting rules to get some args for makefstab
 shopt -s nullglob
-FSTAB_FILES="$(echo %{android_root}/out/target/product/%{device}/root/fstab.* %{android_root}/out/target/product/%{device}/root/*.rc {android_root}/out/target/product/%{device}/vendor/etc/fstab.*)"
+FSTAB_FILES="$(echo %{android_root}/out/target/product/%{device}/root/fstab.* %{android_root}/out/target/product/%{device}/root/*.rc %{android_root}/out/target/product/%{device}/vendor/etc/fstab.*)"
 shopt -u nullglob
 
 
